@@ -83,7 +83,8 @@ const useWebSocket = (url = 'ws://localhost:8000/ws/live-feed') => {
     lastUpdate,
     triggerAttack,
     resetSimulation,
-    setSpeed
+    setSpeed,
+    setBlockchainLogs
   }
 }
 

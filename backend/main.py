@@ -167,7 +167,7 @@ async def simulation_loop():
 
                 try:
 
-                    blockchain.log_anomaly(
+                    log_entry = blockchain.log_anomaly(
                         dev["id"],
                         dev["device_class"],
                         curr_sev_idx,
@@ -175,6 +175,12 @@ async def simulation_loop():
                         dev.get("top_drifting_feature", "unknown"),
                         explanation["action"],
                     )
+                    
+                    if log_entry:
+                        asyncio.create_task(broadcast_message({
+                            "type": "blockchain_log",
+                            "log": log_entry
+                        }))
 
                 except Exception as exc:
                     print(f"[Blockchain] log_anomaly error (ignored): {exc}")
@@ -214,7 +220,7 @@ async def simulation_loop():
 
                 try:
 
-                    blockchain.log_anomaly(
+                    log_entry = blockchain.log_anomaly(
                         dev["id"],
                         dev["device_class"],
                         _severity_index(dev["severity"]),
@@ -222,6 +228,12 @@ async def simulation_loop():
                         dev.get("top_drifting_feature", "unknown"),
                         "ISOLATE",
                     )
+                    
+                    if log_entry:
+                        asyncio.create_task(broadcast_message({
+                            "type": "blockchain_log",
+                            "log": log_entry
+                        }))
 
                 except Exception as exc:
 
@@ -232,13 +244,31 @@ async def simulation_loop():
         await asyncio.sleep(tick_interval)
 
 
+async def broadcast_message(data: Dict):
+    if not connected_websockets:
+        return
+    
+    msg = json.dumps(data)
+    dead: List[WebSocket] = []
+
+    for ws in connected_websockets:
+        try:
+            await ws.send_text(msg)
+        except Exception:
+            dead.append(ws)
+
+    for ws in dead:
+        if ws in connected_websockets:
+            connected_websockets.remove(ws)
+
+
 # --------------------------------------------------------------------------- #
 # WebSocket broadcast
 # --------------------------------------------------------------------------- #
 
-
 async def broadcast_loop():
-
+    # Keep the existing broadcast_loop but make it use the helper if needed, 
+    # or just keep it as is for periodic state updates.
     while True:
 
         if connected_websockets:
@@ -246,28 +276,11 @@ async def broadcast_loop():
             try:
 
                 payload = build_full_payload()
-
-                msg = json.dumps(
-                    {
-                        "type": "state_update",
-                        "timestamp": time.time(),
-                        "data": payload,
-                    }
-                )
-
-                dead: List[WebSocket] = []
-
-                for ws in connected_websockets:
-
-                    try:
-                        await ws.send_text(msg)
-
-                    except Exception:
-                        dead.append(ws)
-
-                for ws in dead:
-                    if ws in connected_websockets:
-                        connected_websockets.remove(ws)
+                await broadcast_message({
+                    "type": "state_update",
+                    "timestamp": time.time(),
+                    "data": payload,
+                })
 
             except Exception as exc:
 

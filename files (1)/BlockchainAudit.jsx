@@ -41,8 +41,8 @@ const BlockchainAudit = ({ logs, status }) => {
             </tr>
           </thead>
           <tbody>
-            {items.map((l, idx) => (
-              <tr key={`${l.device_id || idx}-${l.timestamp || idx}`} style={{ borderBottom: '1px solid var(--border)' }}>
+            {items.map((l) => (
+              <tr key={`${l.id}-${l.timestamp}`} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td style={{ padding: '7px 4px', color: '#cccccc' }}>{formatTime(l.timestamp)}</td>
                 <td style={{ padding: '7px 4px', color: '#ffffff', fontFamily: 'var(--font-mono)', fontSize: 11 }}>{l.device_id}</td>
                 <td style={{ padding: '7px 4px' }}>
@@ -55,7 +55,7 @@ const BlockchainAudit = ({ logs, status }) => {
                     {l.severity_label}
                   </span>
                 </td>
-                <td style={{ padding: '7px 4px', color: '#ffffff' }}>{l.trust_score?.toFixed(1) || l.trust_score}</td>
+                <td style={{ padding: '7px 4px', color: '#ffffff' }}>{l.trust_score}</td>
                 <td style={{ padding: '7px 4px', color: '#dddddd' }}>{l.top_feature}</td>
                 <td style={{ padding: '7px 4px', color: '#dddddd' }}>{l.action_taken}</td>
                 <td style={{ padding: '7px 4px', fontFamily: 'var(--font-mono)', fontSize: 10, color: '#aaaaaa' }}>

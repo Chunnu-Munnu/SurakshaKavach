@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import TopBar from './components/TopBar.jsx'
 import NetworkOverview from './components/NetworkOverview.jsx'
-import DeviceGrid from "./components/DeviceGrid.jsx";
+import DeviceGrid from './components/DeviceGrid.jsx'
 import SpreadGraph from './components/SpreadGraph.jsx'
 import AlertFeed from './components/AlertFeed.jsx'
 import BlockchainAudit from './components/BlockchainAudit.jsx'
@@ -18,37 +18,22 @@ const App = () => {
     lastUpdate,
     triggerAttack,
     resetSimulation,
-    setSpeed
+    setSpeed,
   } = useWebSocket()
+
   const [selectedDevice, setSelectedDevice] = useState(null)
   const [chainStatus, setChainStatus] = useState(null)
 
-  useEffect(() => {
-    // Fetch blockchain status periodically (not via WS)
+  useMemo(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch('/api/blockchain/status')
+        const res  = await fetch('/api/blockchain/status')
         const data = await res.json()
         setChainStatus(data)
-      } catch (e) {
-        // ignore
-      }
+      } catch (_) {}
     }
     fetchStatus()
   }, [lastUpdate])
-
-  useEffect(() => {
-    const fetchInitialLogs = async () => {
-      try {
-        const res = await fetch('/api/blockchain/logs?limit=50')
-        const data = await res.json()
-        setBlockchainLogs(data)
-      } catch (e) {
-        console.error('Failed to fetch initial blockchain logs:', e)
-      }
-    }
-    fetchInitialLogs()
-  }, [])
 
   const stats = networkStatus?.simulation_stats
 
